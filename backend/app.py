@@ -38,6 +38,22 @@ def get_cars():
     except Exception as e:
         return jsonify({"response": str(e)}), 500
     
+@app.route("/api/cars", methods=["POST"])
+def add_cars():
+    try: 
+        data = request.json
+        new_car = { 
+            "make": data["make"], 
+            "model": data["model"], 
+            "year": data["year"],
+            "description": data["description"]
+        }
+        result = mongo.db.cars.insert_one(new_car)
+        new_car_with_id = {"_id": str(result.inserted_id), **new_car}
+        return jsonify({"response": parse_json(new_car_with_id)}), 200
+    except Exception as e:
+        return jsonify({"response": str(e)}), 500
+    
 
 
 
