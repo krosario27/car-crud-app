@@ -10,19 +10,21 @@ class TestCarsAPI(unittest.TestCase):
         cls.client = cls.app.test_client()
         cls.mongo = PyMongo(cls.app)
         
-        # Create a test car in the database
-        with cls.app.app_context():
-            cls.mongo.db.cars.insert_one({
+    def setUp(self):
+        with self.app.app_context():
+            # Create a test car before each test
+            self.test_car = self.mongo.db.cars.insert_one({
                 "make": "Toyota",
                 "model": "Corolla",
                 "year": 2020,
                 "description": "A reliable car."
             })
+            self.test_car_id = self.test_car.inserted_id
 
-    @classmethod
-    def tearDownClass(cls):
-        with cls.app.app_context():
-            cls.mongo.db.cars.drop()  # Clean up the database after tests
+    # def tearDown(self):
+    #     with self.app.app_context():
+    #         # Drop the cars collection after each test to ensure isolation
+    #         self.mongo.db.cars.drop()
 
     def test_get_cars(self):
         response = self.client.get("/api/cars")
@@ -83,7 +85,57 @@ class TestCarsAPI(unittest.TestCase):
         self.assertEqual(db_car["year"], new_car["year"])
         self.assertEqual(db_car["description"], new_car["description"])
 
+    def test_update_car(self):
+        updated_data = {
+            "make": "Toyota",
+            "model": "Camry",
+            "year": 2021,
+            "description": "A reliable and updated car."
+        }
+
+        # Perform the PUT request
+        response = self.client.put(f"/api/cars/{self.test_car_id}", json=updated_data)
+        self.assertEqual(response.status_code, 200)
+
+                # Print debug information
+        print(f"PUT request URL: /api/cars/{self.test_car_id}")
+        print(f"Response status code: {response.status_code}")
+        print(f"Response data: {response.get_json()}")
     
+
+        # Parse the response
+        data = response.get_json()
+        self.assertIn("response", data)
+        response_car = data["response"]
+        self.assertEqual(response_car["make"], updated_data["make"])
+        self.assertEqual(response_car["model"], updated_data["model"])
+        self.assertEqual(response_car["year"], updated_data["year"])
+        self.assertEqual(response_car["description"], updated_data["description"])
+
+        # Verify the update in the database
+        db_car = self.mongo.db.cars.find_one({"_id": self.test_car_id})
+        self.assertIsNotNone(db_car)
+        self.assertEqual(db_car["make"], updated_data["make"])
+        self.assertEqual(db_car["model"], updated_data["model"])
+        self.assertEqual(db_car["year"], updated_data["year"])
+        self.assertEqual(db_car["description"], updated_data["description"])
+
+    def test_delete_car(self):
+        # Perform the DELETE request using the ID of the test car
+        response = self.client.delete(f"/api/cars/{self.test_car_id}")
+        self.assertEqual(response.status_code, 200)
+        
+        # Parse the response
+        data = response.get_json()
+        self.assertIn("response", data)
+        self.assertEqual(data["response"], str(self.test_car_id))
+        
+        # Verify that the car was deleted from the database
+        db_car = self.mongo.db.cars.find_one({"_id": self.test_car_id})
+        self.assertIsNone(db_car)
+
+        
+
 
 if __name__ == "__main__":
     unittest.main()

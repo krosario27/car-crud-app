@@ -45,5 +45,30 @@ def create_app():
             return jsonify({"response": parse_json(new_car_with_id)}), 200
         except Exception as e:
             return jsonify({"response": str(e)}), 500
+        
+    @app.route("/api/cars/<id>", methods=["PUT"])
+    def update_car(id):
+        try:
+            data = request.json
+            updated_car = mongo.db.cars.find_one_and_update(
+                {"_id": ObjectId(id)},
+                {"$set": data},
+                return_document=True
+            )
+            if updated_car is None:
+                return jsonify({"response": "Car not found"}), 404
+            return jsonify({"response": parse_json(updated_car)}), 200
+        except Exception as e:
+            return jsonify({"response": str(e)}), 500
+        
+    @app.route("/api/cars/<id>", methods=["DELETE"])
+    def delete_car(id):
+        try:
+            result = mongo.db.cars.delete_one({"_id": ObjectId(id)}) 
+            if result.deleted_count == 0:
+                return jsonify({"response": "Car not found..."}), 404
+            return jsonify({"response": id}), 200
+        except Exception as e:
+            return jsonify({"response": str(e)}), 500
 
     return app
