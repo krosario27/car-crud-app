@@ -17,10 +17,29 @@ mongo = PyMongo(app)
 def parse_json(data):
     return json.loads((json_util.dumps(data)))
 
-
+# Connect to API
 @app.route("/api", methods=["GET"])
 def api():
     return jsonify({"response": "api worked..."}), 200
+
+# Gets all cars from db when route is accessed
+@app.route("/api/cars", methods=["GET"])
+def get_cars():
+    try:
+        cars = mongo.db.cars.find()
+        cars_list = [{
+            "_id": str(car["_id"]), 
+            "make": car["make"], 
+            "model": car["model"], 
+            "year": car["year"],
+            "description": car["description"]} 
+            for car in cars]
+        return jsonify({"response": cars_list}), 200
+    except Exception as e:
+        return jsonify({"response": str(e)}), 500
+    
+
+
 
 
 
