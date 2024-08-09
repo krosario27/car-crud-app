@@ -32,8 +32,7 @@ def get_cars():
             "make": car["make"], 
             "model": car["model"], 
             "year": car["year"],
-            "description": car["description"]} 
-            for car in cars]
+            "description": car["description"]} for car in cars]
         return jsonify({"response": cars_list}), 200
     except Exception as e:
         return jsonify({"response": str(e)}), 500
