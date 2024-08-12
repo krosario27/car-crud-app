@@ -69,22 +69,23 @@ const Home: React.FC = () => {
                         <th>Model</th>
                         <th>Year</th>
                         <th>Description</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {loading && (
                         <tr>
-                            <td colSpan={4} className='text-center'>Loading...</td>
+                            <td colSpan={6} className='text-center'>Loading...</td>
                         </tr>
                     )}
                     {!loading && carList.length === 0 && (
                         <tr>
-                            <td colSpan={4} className='text-center'>No records</td>
+                            <td colSpan={6} className='text-center'>No records</td>
                         </tr>
                     )}
                     {!loading && error && (
                         <tr>
-                            <td colSpan={4} className='text-center'>{error}</td>
+                            <td colSpan={6} className='text-center'>{error}</td>
                         </tr>
                     )}
                     {!loading && carList && carList.map((item, index) => (
